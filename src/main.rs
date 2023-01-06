@@ -1,10 +1,10 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, winit::WinitSettings, input::keyboard::*};
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_startup_system(setup)
-        .add_system(animate_sprite)
+        .add_system(move_knight)
         .run();
 }
 
@@ -26,6 +26,36 @@ fn animate_sprite(time: Res<Time>,
     }
 }
 
+#[derive(Component)]
+struct Knight;
+
+enum KnightDirection {
+    Left,
+    Right,
+}
+
+fn move_knight (
+    time: Res<Time>,
+    texture_atlases: Res<Assets<TextureAtlas>>,
+    keyboard_input: Res<Input<KeyCode>>,
+    mut query: Query<(&mut AnimationTimer, &mut TextureAtlasSprite, &Handle<TextureAtlas>)>
+) {
+    let mut knight_direction:KnightDirection = KnightDirection::Right;
+    
+    for (mut timer, mut sprite, mut texture_atlas_handle) in &mut query {
+        knight_direction = KnightDirection::Right;
+        let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
+
+        if keyboard_input.pressed(KeyCode::Right) {
+            timer.tick(time.delta());
+            if timer.just_finished() {
+                let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
+                sprite.index = (sprite.index + 1) % texture_atlas.textures.len();
+            }
+        } 
+    }     
+}
+
 fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -41,7 +71,8 @@ fn setup(
             transform: Transform::from_scale(Vec3::splat(6.0)),
             ..Default::default()
         },
-        AnimationTimer(Timer::from_seconds(0.075, TimerMode::Repeating))
+        AnimationTimer(Timer::from_seconds(0.08, TimerMode::Repeating)),
+        Knight,
     ));
 }
 
