@@ -6,9 +6,11 @@ struct AnimationTimer(Timer);
 #[derive(Component)]
 struct Knight;
 
-enum KnightDirection {
-    Left,
-    Right,
+enum KnightState {
+    RunLeft,
+    RunRight,
+    IdleLeft,
+    IdleRight
 }
 
 fn setup(
@@ -51,11 +53,8 @@ fn move_knight (
     texture_atlases: Res<Assets<TextureAtlas>>,
     keyboard_input: Res<Input<KeyCode>>,
     mut query: Query<(&mut AnimationTimer, &mut TextureAtlasSprite, &Handle<TextureAtlas>)>
-) {
-    let mut knight_direction:KnightDirection = KnightDirection::Right;
-    
+) {  
     for (mut timer, mut sprite, mut texture_atlas_handle) in &mut query {
-        knight_direction = KnightDirection::Right;
         let texture_atlas = texture_atlases.get(texture_atlas_handle).unwrap();
 
         if keyboard_input.pressed(KeyCode::Right) {
